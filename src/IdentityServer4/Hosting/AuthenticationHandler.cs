@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Http;
 using IdentityServer4.Configuration;
 using IdentityServer4.Services;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Security.Claims;
 using IdentityServer4.Events;
 using IdentityServer4.Extensions;
@@ -18,7 +17,7 @@ namespace IdentityServer4.Hosting
     public class AuthenticationHandler : IAuthenticationHandler
     {
         private readonly IdentityServerOptions _options;
-        private readonly HttpContext _context;
+        private readonly IHttpContextAccessor _context;
         private IAuthenticationHandler _handler;
         private readonly ISessionIdService _sessionId;
         private readonly ILogger<AuthenticationHandler> _logger;
@@ -31,7 +30,7 @@ namespace IdentityServer4.Hosting
             IEventService events,
             ILogger<AuthenticationHandler> logger)
         {
-            _context = context.HttpContext;
+            _context = context;
             _options = options;
             _sessionId = sessionId;
             _events = events;
@@ -55,7 +54,7 @@ namespace IdentityServer4.Hosting
 
         public async Task SignInAsync(SignInContext context)
         {
-            if (context.AuthenticationScheme == _options.AuthenticationOptions.EffectiveAuthenticationScheme)
+            if (context.AuthenticationScheme == _options.Authentication.EffectiveAuthenticationScheme)
             {
                 AugmentContext(context);
                 await RaiseSignInEventAsync(context.Principal);
@@ -75,7 +74,7 @@ namespace IdentityServer4.Hosting
 
         public async Task SignOutAsync(SignOutContext context)
         {
-            if (context.AuthenticationScheme == _options.AuthenticationOptions.EffectiveAuthenticationScheme)
+            if (context.AuthenticationScheme == _options.Authentication.EffectiveAuthenticationScheme)
             {
                 _sessionId.RemoveCookie();
                 await RaiseSignOutEventAsync();
@@ -100,11 +99,11 @@ namespace IdentityServer4.Hosting
 
         IHttpAuthenticationFeature GetAuthentication()
         {
-            var auth = _context.Features.Get<IHttpAuthenticationFeature>();
+            var auth = _context.HttpContext.Features.Get<IHttpAuthenticationFeature>();
             if (auth == null)
             {
                 auth = new HttpAuthenticationFeature();
-                _context.Features.Set(auth);
+                _context.HttpContext.Features.Set(auth);
             }
             return auth;
         }
@@ -116,7 +115,7 @@ namespace IdentityServer4.Hosting
 
         private async Task RaiseSignOutEventAsync()
         {
-            var principal = await _context.GetIdentityServerUserAsync();
+            var principal = await _context.HttpContext.GetIdentityServerUserAsync();
             if (principal.IsAuthenticated())
             {
                 await _events.RaiseLogoutEventAsync(principal);

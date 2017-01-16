@@ -13,6 +13,7 @@ using IdentityServer4;
 using IdentityServer4.Validation;
 using Serilog;
 using Microsoft.AspNetCore.Http;
+using IdentityServer4.Quickstart.UI;
 
 namespace Host
 {
@@ -22,25 +23,18 @@ namespace Host
         {
             services.AddIdentityServer(options =>
                 {
-                    //options.EventsOptions = new EventsOptions
-                    //{
-                    //    RaiseErrorEvents = true,
-                    //    RaiseFailureEvents = true,
-                    //    RaiseInformationEvents = true,
-                    //    RaiseSuccessEvents = true
-                    //};
-
-                    options.AuthenticationOptions.FederatedSignOutPaths.Add("/signout-callback-aad");
-                    options.AuthenticationOptions.FederatedSignOutPaths.Add("/signout-callback-idsrv3");
+                    options.Authentication.FederatedSignOutPaths.Add("/signout-callback-aad");
+                    options.Authentication.FederatedSignOutPaths.Add("/signout-callback-idsrv3");
                 })
-                .AddInMemoryClients(Clients.Get())
-                .AddInMemoryIdentityResources(Resources.GetIdentityResources())
-                .AddInMemoryApiResources(Resources.GetApiResources())
-                .AddInMemoryUsers(Users.Get())
-                .AddTemporarySigningCredential()
-                .AddExtensionGrantValidator<Extensions.ExtensionGrantValidator>()
-                .AddSecretParser<ClientAssertionSecretParser>()
-                .AddSecretValidator<PrivateKeyJwtSecretValidator>();
+            .AddInMemoryClients(Clients.Get())
+            .AddInMemoryIdentityResources(Resources.GetIdentityResources())
+            .AddInMemoryApiResources(Resources.GetApiResources())
+            .AddTemporarySigningCredential()
+
+            .AddExtensionGrantValidator<Extensions.ExtensionGrantValidator>()
+            .AddSecretParser<ClientAssertionSecretParser>()
+            .AddSecretValidator<PrivateKeyJwtSecretValidator>()
+            .AddTestUsers(TestUsers.Users);
 
             services.AddMvc();
         }
@@ -83,8 +77,8 @@ namespace Host
             {
                 AuthenticationScheme = "Google",
                 SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme,
-                ClientId = "998042782978-s07498t8i8jas7npj4crve1skpromf37.apps.googleusercontent.com",
-                ClientSecret = "HsnwJri_53zn7VcO1Fm7THBb",
+                ClientId = "708996912208-9m4dkjb5hscn7cjrn5u0r4tbgkbj1fko.apps.googleusercontent.com",
+                ClientSecret = "wdfPY6t8H8cecgjlxud__4Gh"
             });
 
             app.UseOpenIdConnectAuthentication(new OpenIdConnectOptions
@@ -97,6 +91,7 @@ namespace Host
                 ClientId = "implicit",
                 ResponseType = "id_token",
                 Scope = { "openid profile" },
+                SaveTokens = true,
                 CallbackPath = new PathString("/signin-idsrv3"),
                 SignedOutCallbackPath = new PathString("/signout-callback-idsrv3"),
                 RemoteSignOutPath = new PathString("/signout-idsrv3"),

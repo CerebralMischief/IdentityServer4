@@ -33,6 +33,8 @@ Free and Commercial Support
 If you need help building or running your identity platform, :ref:`let us know <refSupport>`.
 There are several way we can help you out.
 
+IdentityServer is officially certified by the OpenID Foundation and part of the .NET Foundation.
+
 .. toctree::
    :maxdepth: 2
    :hidden:
@@ -43,6 +45,7 @@ There are several way we can help you out.
    intro/specs
    intro/packaging
    intro/support
+   intro/test
 
 .. toctree::
    :maxdepth: 2
@@ -97,6 +100,7 @@ There are several way we can help you out.
    endpoints/token
    endpoints/userinfo
    endpoints/introspection
+   endpoints/revocation
 
 .. toctree::
    :maxdepth: 2
@@ -107,11 +111,13 @@ There are several way we can help you out.
    reference/api_resource
    reference/client
    reference/grant_validation_result
+   reference/options
 
 .. toctree::
    :maxdepth: 2
    :hidden:
    :caption: Misc
 
+   misc/training
    misc/blogs
    misc/videos
