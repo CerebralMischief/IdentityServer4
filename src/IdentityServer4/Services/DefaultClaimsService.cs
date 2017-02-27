@@ -53,13 +53,18 @@ namespace IdentityServer4.Services
         /// </returns>
         public virtual async Task<IEnumerable<Claim>> GetIdentityTokenClaimsAsync(ClaimsPrincipal subject, Client client, Resources resources, bool includeAllIdentityClaims, ValidatedRequest request)
         {
-            _logger.LogDebug("Getting claims for identity token for subject: {subject} and client: {clientId}", subject.GetSubjectId(), client.ClientId);
+            // client parameter should not be used anymore - will be removed in later version
+            client = null;
+
+            _logger.LogDebug("Getting claims for identity token for subject: {subject} and client: {clientId}",
+                subject.GetSubjectId(),
+                request.Client.ClientId);
 
             var outputClaims = new List<Claim>(GetStandardSubjectClaims(subject));
             outputClaims.AddRange(GetOptionalClaims(subject));
 
             // fetch all identity claims that need to go into the id token
-            if (includeAllIdentityClaims || client.AlwaysIncludeUserClaimsInIdToken)
+            if (includeAllIdentityClaims || request.Client.AlwaysIncludeUserClaimsInIdToken)
             {
                 var additionalClaimTypes = new List<string>();
 
@@ -76,7 +81,7 @@ namespace IdentityServer4.Services
 
                 var context = new ProfileDataRequestContext(
                     subject,
-                    client,
+                    request.Client,
                     IdentityServerConstants.ProfileDataCallers.ClaimsProviderIdentityToken,
                     additionalClaimTypes);
 
@@ -87,6 +92,10 @@ namespace IdentityServer4.Services
                 {
                     outputClaims.AddRange(claims);
                 }
+            }
+            else
+            {
+                _logger.LogDebug("In addition to an id_token, an access_token was requested. No claims other than sub are included in the id_token. To obtain more user claims, either use the user info endpoint or set AlwaysIncludeUserClaimsInIdToken on the client configuration.");
             }
 
             return outputClaims;
@@ -104,24 +113,27 @@ namespace IdentityServer4.Services
         /// </returns>
         public virtual async Task<IEnumerable<Claim>> GetAccessTokenClaimsAsync(ClaimsPrincipal subject, Client client, Resources resources, ValidatedRequest request)
         {
-            _logger.LogDebug("Getting claims for access token for client: {clientId}", client.ClientId);
+            // client parameter should not be used anymore - will be removed in later version
+            client = null;
+
+            _logger.LogDebug("Getting claims for access token for client: {clientId}", request.Client.ClientId);
 
             // add client_id
             var outputClaims = new List<Claim>
             {
-                new Claim(JwtClaimTypes.ClientId, client.ClientId),
+                new Claim(JwtClaimTypes.ClientId, request.Client.ClientId),
             };
 
             // check for client claims
-            if (client.Claims != null && client.Claims.Any())
+            if (request.ClientClaims != null && request.ClientClaims.Any())
             {
-                if (subject == null || client.AlwaysSendClientClaims)
+                if (subject == null || request.Client.AlwaysSendClientClaims)
                 {
-                    foreach (var claim in client.Claims)
+                    foreach (var claim in request.ClientClaims)
                     {
                         var claimType = claim.Type;
 
-                        if (client.PrefixClientClaims)
+                        if (request.Client.PrefixClientClaims)
                         {
                             claimType = "client_" + claimType;
                         }
@@ -185,7 +197,7 @@ namespace IdentityServer4.Services
 
                 var context = new ProfileDataRequestContext(
                     subject,
-                    client,
+                    request.Client,
                     IdentityServerConstants.ProfileDataCallers.ClaimsProviderAccessToken,
                     additionalClaimTypes.Distinct());
 

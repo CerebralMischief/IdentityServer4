@@ -112,12 +112,29 @@ namespace IdentityServer4.IntegrationTests.Clients
                         new Secret("secret".Sha256())
                     },
 
-                    AllowedGrantTypes = GrantTypes.List("custom"),
+                    AllowedGrantTypes = GrantTypes.List("custom", "custom.nosubject"),
 
                     AllowedScopes = 
                     {
                         "api1", "api2"
                     }
+                },
+                new Client
+                {
+                    ClientId = "client.dynamic",
+                    ClientSecrets =
+                    {
+                        new Secret("secret".Sha256())
+                    },
+
+                    AllowedGrantTypes = GrantTypes.List("dynamic"),
+
+                    AllowedScopes =
+                    {
+                        "api1", "api2"
+                    },
+
+                    AlwaysSendClientClaims = true
                 },
 
                 ///////////////////////////////////////////

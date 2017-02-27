@@ -19,29 +19,8 @@ namespace Host
 {
     public class Startup
     {
-        public void ConfigureServices(IServiceCollection services)
+        public Startup(ILoggerFactory loggerFactory)
         {
-            services.AddIdentityServer(options =>
-                {
-                    options.Authentication.FederatedSignOutPaths.Add("/signout-callback-aad");
-                    options.Authentication.FederatedSignOutPaths.Add("/signout-callback-idsrv3");
-                })
-            .AddInMemoryClients(Clients.Get())
-            .AddInMemoryIdentityResources(Resources.GetIdentityResources())
-            .AddInMemoryApiResources(Resources.GetApiResources())
-            .AddTemporarySigningCredential()
-
-            .AddExtensionGrantValidator<Extensions.ExtensionGrantValidator>()
-            .AddSecretParser<ClientAssertionSecretParser>()
-            .AddSecretValidator<PrivateKeyJwtSecretValidator>()
-            .AddTestUsers(TestUsers.Users);
-
-            services.AddMvc();
-        }
-
-        public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
-        {
-            // serilog filter
             Func<LogEvent, bool> serilogFilter = (e) =>
             {
                 var context = e.Properties["SourceContext"].ToString();
@@ -51,7 +30,7 @@ namespace Host
                         e.Level == LogEventLevel.Error ||
                         e.Level == LogEventLevel.Fatal);
             };
-        
+
             var serilog = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .Enrich.FromLogContext()
@@ -61,17 +40,34 @@ namespace Host
                 .CreateLogger();
 
             loggerFactory.AddSerilog(serilog);
+        }
 
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddIdentityServer(options =>
+                {
+                    options.Authentication.FederatedSignOutPaths.Add("/signout-callback-aad");
+                    options.Authentication.FederatedSignOutPaths.Add("/signout-callback-idsrv3");
+                    options.Authentication.FederatedSignOutPaths.Add("/signout-callback-adfs");
+                })
+            .AddInMemoryClients(Clients.Get())
+            .AddInMemoryIdentityResources(Resources.GetIdentityResources())
+            .AddInMemoryApiResources(Resources.GetApiResources())
+            .AddTemporarySigningCredential()
+            .AddExtensionGrantValidator<Extensions.ExtensionGrantValidator>()
+            .AddExtensionGrantValidator<Extensions.NoSubjectExtensionGrantValidator>()
+            .AddSecretParser<ClientAssertionSecretParser>()
+            .AddSecretValidator<PrivateKeyJwtSecretValidator>()
+            .AddTestUsers(TestUsers.Users);
+
+            services.AddMvc();
+        }
+
+        public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
+        {
             app.UseDeveloperExceptionPage();
 
             app.UseIdentityServer();
-
-            app.UseCookieAuthentication(new CookieAuthenticationOptions
-            {
-                AuthenticationScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme,
-                AutomaticAuthenticate = false,
-                AutomaticChallenge = false
-            });
 
             app.UseGoogleAuthentication(new GoogleOptions
             {
@@ -115,6 +111,26 @@ namespace Host
                 CallbackPath = new PathString("/signin-aad"),
                 SignedOutCallbackPath = new PathString("/signout-callback-aad"),
                 RemoteSignOutPath = new PathString("/signout-aad"),
+                TokenValidationParameters = new TokenValidationParameters
+                {
+                    NameClaimType = "name",
+                    RoleClaimType = "role"
+                }
+            });
+
+            app.UseOpenIdConnectAuthentication(new OpenIdConnectOptions
+            {
+                AuthenticationScheme = "adfs",
+                SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme,
+                SignOutScheme = IdentityServerConstants.SignoutScheme,
+                DisplayName = "ADFS",
+                Authority = "https://adfs.leastprivilege.vm/adfs",
+                ClientId = "c0ea8d99-f1e7-43b0-a100-7dee3f2e5c3c",
+                ResponseType = "id_token",
+                Scope = { "openid profile" },
+                CallbackPath = new PathString("/signin-adfs"),
+                SignedOutCallbackPath = new PathString("/signout-callback-adfs"),
+                RemoteSignOutPath = new PathString("/signout-adfs"),
                 TokenValidationParameters = new TokenValidationParameters
                 {
                     NameClaimType = "name",
