@@ -32,11 +32,18 @@ namespace IdentityServer4.Validation
             _options = options;
         }
 
+        /// <summary>
+        /// Returns the authentication method name that this parser implements
+        /// </summary>
+        /// <value>
+        /// The authentication method.
+        /// </value>
         public string AuthenticationMethod => OidcConstants.EndpointAuthenticationMethods.PostBody;
 
         /// <summary>
-        /// Tries to find a secret on the environment that can be used for authentication
+        /// Tries to find a secret on the context that can be used for authentication
         /// </summary>
+        /// <param name="context">The HTTP context.</param>
         /// <returns>
         /// A parsed secret
         /// </returns>
@@ -62,7 +69,7 @@ namespace IdentityServer4.Validation
                 {
                     if (id.Length > _options.InputLengthRestrictions.ClientId)
                     {
-                        _logger.LogError("Client ID exceeds maximum lenght.");
+                        _logger.LogError("Client ID exceeds maximum length.");
                         return null;
                     }
 
@@ -70,7 +77,7 @@ namespace IdentityServer4.Validation
                     {
                         if (secret.Length > _options.InputLengthRestrictions.ClientSecret)
                         {
-                            _logger.LogError("Client secret exceeds maximum lenght.");
+                            _logger.LogError("Client secret exceeds maximum length.");
                             return null;
                         }
 

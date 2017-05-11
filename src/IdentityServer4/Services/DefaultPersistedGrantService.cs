@@ -18,10 +18,16 @@ namespace IdentityServer4.Services
     /// </summary>
     public class DefaultPersistedGrantService : IPersistedGrantService
     {
-        private readonly ILogger<DefaultPersistedGrantService> _logger;
+        private readonly ILogger _logger;
         private readonly IPersistedGrantStore _store;
         private readonly IPersistentGrantSerializer _serializer;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DefaultPersistedGrantService"/> class.
+        /// </summary>
+        /// <param name="store">The store.</param>
+        /// <param name="serializer">The serializer.</param>
+        /// <param name="logger">The logger.</param>
         public DefaultPersistedGrantService(IPersistedGrantStore store, 
             IPersistentGrantSerializer serializer,
             ILogger<DefaultPersistedGrantService> logger)
@@ -30,7 +36,12 @@ namespace IdentityServer4.Services
             _serializer = serializer;
             _logger = logger;
         }
-        
+
+        /// <summary>
+        /// Gets all grants for a given subject ID.
+        /// </summary>
+        /// <param name="subjectId">The subject identifier.</param>
+        /// <returns></returns>
         public async Task<IEnumerable<Consent>> GetAllGrantsAsync(string subjectId)
         {
             var grants = (await _store.GetAllAsync(subjectId)).ToArray();
@@ -89,21 +100,47 @@ namespace IdentityServer4.Services
 
         IEnumerable<Consent> Join(IEnumerable<Consent> first, IEnumerable<Consent> second)
         {
-            var query =
-                from f in first
-                join s in second on f.ClientId equals s.ClientId
-                let scopes = f.Scopes.Union(s.Scopes).Distinct()
-                select new Consent
+            var list = first.ToList();
+
+            foreach(var other in second)
+            {
+                var match = list.FirstOrDefault(x => x.ClientId == other.ClientId);
+                if (match != null)
                 {
-                    ClientId = f.ClientId,
-                    SubjectId = f.SubjectId,
-                    Scopes = scopes,
-                    CreationTime = f.CreationTime,
-                    Expiration = f.Expiration
-                };
-            return query;
+                    match.Scopes = match.Scopes.Union(other.Scopes).Distinct();
+
+                    if (match.CreationTime > other.CreationTime)
+                    {
+                        // show the earlier creation time
+                        match.CreationTime = other.CreationTime;
+                    }
+
+                    if (match.Expiration == null || other.Expiration == null)
+                    {
+                        // show that there is no expiration to one of the grants
+                        match.Expiration = null;
+                    }
+                    else if (match.Expiration < other.Expiration)
+                    {
+                        // show the latest expiration
+                        match.Expiration = other.Expiration;
+                    }
+                }
+                else
+                {
+                    list.Add(other);
+                }
+            }
+
+            return list;
         }
 
+        /// <summary>
+        /// Removes all grants for a given subject id and client id combination.
+        /// </summary>
+        /// <param name="subjectId">The subject identifier.</param>
+        /// <param name="clientId">The client identifier.</param>
+        /// <returns></returns>
         public Task RemoveAllGrantsAsync(string subjectId, string clientId)
         {
             return _store.RemoveAllAsync(subjectId, clientId);

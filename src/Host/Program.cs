@@ -5,7 +5,6 @@
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using System;
-using Microsoft.Net.Http.Server;
 
 namespace Host
 {
@@ -22,7 +21,6 @@ namespace Host
                 //    options.ListenerSettings.Authentication.AllowAnonymous = true;
                 //})
                 .UseKestrel()
-                .UseUrls("http://localhost:5000")
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
                 .UseStartup<Startup>()

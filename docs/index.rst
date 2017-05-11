@@ -34,7 +34,7 @@ Since IdentityServer is a framework and not a boxed product or a SaaS, you can w
 Free and Commercial Support
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 If you need help building or running your identity platform, :ref:`let us know <refSupport>`.
-There are several way we can help you out.
+There are several ways we can help you out.
 
 IdentityServer is officially certified by the OpenID Foundation and part of the .NET Foundation.
 
@@ -44,11 +44,13 @@ IdentityServer is officially certified by the OpenID Foundation and part of the 
    :caption: Introduction
 
    intro/big_picture
+   intro/architecture
    intro/terminology
    intro/specs
    intro/packaging
    intro/support
    intro/test
+   intro/contributing
 
 .. toctree::
    :maxdepth: 2
@@ -81,23 +83,30 @@ IdentityServer is officially certified by the OpenID Foundation and part of the 
    :hidden:
    :caption: Topics
 
+   topics/startup
+   topics/resources
+   topics/clients
+   topics/signin
+   topics/signin_external_providers
+   topics/windows
+   topics/signout
+   topics/signout_external_providers
+   topics/signout_federated
+   topics/consent
+   topics/apis
+   topics/deployment
+   topics/logging
+   topics/events
+   topics/crypto
    topics/grant_types
    topics/secrets
    topics/extension_grants
    topics/resource_owner
-   topics/crypto
-   topics/deployment
-   topics/signin
-   topics/signin_external_providers
-   topics/consent
-   topics/signout_external_providers
-   topics/signout_federated
-   topics/signout
-   topics/logging
    topics/refresh_tokens
    topics/reference_tokens
-   topics/windows
    topics/cors
+   topics/discovery
+   topics/add_protocols
 
 .. toctree::
    :maxdepth: 2
@@ -110,6 +119,7 @@ IdentityServer is officially certified by the OpenID Foundation and part of the 
    endpoints/userinfo
    endpoints/introspection
    endpoints/revocation
+   endpoints/endsession
 
 .. toctree::
    :maxdepth: 2

@@ -65,7 +65,7 @@ namespace IdentityServer4.Validation
             List<SecurityKey> trustedKeys; 
             try
             {
-                trustedKeys = GetTrustedKeys(enumeratedSecrets, jwtTokenString);
+                trustedKeys = GetTrustedKeys(enumeratedSecrets);
             }
             catch (Exception e)
             {
@@ -95,12 +95,10 @@ namespace IdentityServer4.Validation
             };
             try
             {
-                SecurityToken token;
                 var handler = new JwtSecurityTokenHandler();
-                handler.ValidateToken(jwtTokenString, tokenValidationParameters, out token);
+                handler.ValidateToken(jwtTokenString, tokenValidationParameters, out var token);
 
                 var jwtToken = (JwtSecurityToken)token;
-
                 if (jwtToken.Subject != jwtToken.Issuer)
                 {
                     _logger.LogError("Both 'sub' and 'iss' in the client assertion token must have a value of client_id.");
@@ -116,7 +114,7 @@ namespace IdentityServer4.Validation
             }
         }
 
-        private List<SecurityKey> GetTrustedKeys(IReadOnlyCollection<Secret> secrets, string jwtTokenString)
+        private List<SecurityKey> GetTrustedKeys(IReadOnlyCollection<Secret> secrets)
         {
             var trustedKeys = GetAllTrustedCertificates(secrets)
                                 .Select(c => (SecurityKey)new X509SecurityKey(c))

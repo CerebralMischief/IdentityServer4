@@ -3,7 +3,7 @@
 OpenID Connect and OAuth 2.0 Framework for ASP.NET Core
 
 [![Build status](https://ci.appveyor.com/api/projects/status/x4t8sk0n6gna0c7w?svg=true)](https://ci.appveyor.com/project/leastprivilege/identityserver4)
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/IdentityServer/IdentityServer4?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/IdentityServer/IdentityServer4?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This is the main repo for IdentityServer4 - but there's more:
 
@@ -17,10 +17,7 @@ This is the main repo for IdentityServer4 - but there's more:
 
 ### Platform
 
-IdentityServer is built against ASP.NET Core 1.1.0 using the 1.0.0-preview2-003131 SDK. This is the only configuration we are going to support on the issue tracker.
-
-Also we are staying on the project.json based tooling until Visual Studio 2017 has been released - IOW you need to use Visual Studio
-Update 3 with the preview ASP.NET Core tooling.
+IdentityServer is built against ASP.NET Core 1.1 using the RTM tooling that ships with Visual Studio 2017. This is the only configuration we support on the issue tracker.
 
 ### How to build
 

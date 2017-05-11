@@ -22,7 +22,7 @@ namespace IdentityServer4.Services
         /// <summary>
         /// The logger
         /// </summary>
-        private readonly ILogger _logger;
+        protected readonly ILogger Logger;
 
         /// <summary>
         /// The user service
@@ -36,7 +36,7 @@ namespace IdentityServer4.Services
         /// <param name="logger">The logger</param>
         public DefaultClaimsService(IProfileService profile, ILogger<DefaultClaimsService> logger)
         {
-            _logger = logger;
+            Logger = logger;
             Profile = profile;
         }
 
@@ -44,19 +44,15 @@ namespace IdentityServer4.Services
         /// Returns claims for an identity token
         /// </summary>
         /// <param name="subject">The subject</param>
-        /// <param name="client">The client</param>
         /// <param name="resources">The requested resources</param>
         /// <param name="includeAllIdentityClaims">Specifies if all claims should be included in the token, or if the userinfo endpoint can be used to retrieve them</param>
         /// <param name="request">The raw request</param>
         /// <returns>
         /// Claims for the identity token
         /// </returns>
-        public virtual async Task<IEnumerable<Claim>> GetIdentityTokenClaimsAsync(ClaimsPrincipal subject, Client client, Resources resources, bool includeAllIdentityClaims, ValidatedRequest request)
+        public virtual async Task<IEnumerable<Claim>> GetIdentityTokenClaimsAsync(ClaimsPrincipal subject, Resources resources, bool includeAllIdentityClaims, ValidatedRequest request)
         {
-            // client parameter should not be used anymore - will be removed in later version
-            client = null;
-
-            _logger.LogDebug("Getting claims for identity token for subject: {subject} and client: {clientId}",
+            Logger.LogDebug("Getting claims for identity token for subject: {subject} and client: {clientId}",
                 subject.GetSubjectId(),
                 request.Client.ClientId);
 
@@ -95,7 +91,7 @@ namespace IdentityServer4.Services
             }
             else
             {
-                _logger.LogDebug("In addition to an id_token, an access_token was requested. No claims other than sub are included in the id_token. To obtain more user claims, either use the user info endpoint or set AlwaysIncludeUserClaimsInIdToken on the client configuration.");
+                Logger.LogDebug("In addition to an id_token, an access_token was requested. No claims other than sub are included in the id_token. To obtain more user claims, either use the user info endpoint or set AlwaysIncludeUserClaimsInIdToken on the client configuration.");
             }
 
             return outputClaims;
@@ -105,23 +101,19 @@ namespace IdentityServer4.Services
         /// Returns claims for an identity token.
         /// </summary>
         /// <param name="subject">The subject.</param>
-        /// <param name="client">The client.</param>
         /// <param name="resources">The requested resources</param>
         /// <param name="request">The raw request.</param>
         /// <returns>
         /// Claims for the access token
         /// </returns>
-        public virtual async Task<IEnumerable<Claim>> GetAccessTokenClaimsAsync(ClaimsPrincipal subject, Client client, Resources resources, ValidatedRequest request)
+        public virtual async Task<IEnumerable<Claim>> GetAccessTokenClaimsAsync(ClaimsPrincipal subject, Resources resources, ValidatedRequest request)
         {
-            // client parameter should not be used anymore - will be removed in later version
-            client = null;
-
-            _logger.LogDebug("Getting claims for access token for client: {clientId}", request.Client.ClientId);
+            Logger.LogDebug("Getting claims for access token for client: {clientId}", request.Client.ClientId);
 
             // add client_id
             var outputClaims = new List<Claim>
             {
-                new Claim(JwtClaimTypes.ClientId, request.Client.ClientId),
+                new Claim(JwtClaimTypes.ClientId, request.Client.ClientId)
             };
 
             // check for client claims
@@ -161,7 +153,7 @@ namespace IdentityServer4.Services
                     outputClaims.Add(new Claim(JwtClaimTypes.Scope, IdentityServerConstants.StandardScopes.OfflineAccess));
                 }
 
-                _logger.LogDebug("Getting claims for access token for subject: {subject}", subject.GetSubjectId());
+                Logger.LogDebug("Getting claims for access token for subject: {subject}", subject.GetSubjectId());
 
                 outputClaims.AddRange(GetStandardSubjectClaims(subject));
                 outputClaims.AddRange(GetOptionalClaims(subject));
@@ -224,7 +216,7 @@ namespace IdentityServer4.Services
             {
                 new Claim(JwtClaimTypes.Subject, subject.GetSubjectId()),
                 new Claim(JwtClaimTypes.AuthenticationTime, subject.GetAuthenticationTimeEpoch().ToString(), ClaimValueTypes.Integer),
-                new Claim(JwtClaimTypes.IdentityProvider, subject.GetIdentityProvider()),
+                new Claim(JwtClaimTypes.IdentityProvider, subject.GetIdentityProvider())
             };
 
             claims.AddRange(subject.GetAuthenticationMethods());
@@ -258,7 +250,7 @@ namespace IdentityServer4.Services
             if (claimsToFilter.Any())
             {
                 var types = claimsToFilter.Select(x => x.Type);
-                _logger.LogDebug("Claim types from profile service that were filtered: {claimTypes}", types);
+                Logger.LogDebug("Claim types from profile service that were filtered: {claimTypes}", types);
             }
             return claims.Except(claimsToFilter);
         }
